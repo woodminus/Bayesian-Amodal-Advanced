@@ -34,4 +34,32 @@ def mask_features(features, bbox, img_shape, inner_bound, outer_bound):
     #demo = np.zeros((h, w))
 
     for i in range(h):
-        fo
+        for j in range(w):
+
+            within_inner_bbox = False
+            within_outer_bbox = False
+
+            for b in range(bbox.shape[0]):
+
+                inner_box = inner_bbox[b]
+                within_inner_bbox = within_inner_bbox or (i >= inner_box[0] and i < inner_box[2] and j >= inner_box[1] and j < inner_box[3])
+
+                outer_box = outer_bbox[b]
+                within_outer_bbox = within_outer_bbox or (i >= outer_box[0] and i < outer_box[2] and j >= outer_box[1] and j < outer_box[3])
+
+            if within_outer_bbox and not within_inner_bbox:
+                context_feat.append((features[i][j] / np.sqrt(np.sum(features[i][j] ** 2) + 1e-10)).tolist())
+                #demo[i][j] = 1
+    return context_feat#, demo
+
+
+def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_for_clustering=.1, max_num=100000, num_cluster=10):
+
+    # Stage 1: Collect features that have receptive field outside of object bounding boxes
+    print('==========Class: {}=========='.format(category))
+    print('Stage 1: Feature Extraction')
+    storage_dir = init_dir + 'context_features_meta_{}/'.format(dataset_train)
+    if not os.path.exists(storage_dir):
+        os.makedirs(storage_dir)
+
+    storage_file = storage_dir + '{}_context_fea
