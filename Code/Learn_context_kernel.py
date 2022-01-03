@@ -119,4 +119,47 @@ def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_
 
     print('Stage 2: Feature Clustering')
     rm.seed(0)
-    X = np.ar
+    X = np.array(feat_vec)
+    rand_idx = rm.sample(range(X.shape[0]), min((int)(percentage_for_clustering * X.shape[0]), max_num))
+    X = X[rand_idx]
+    feat_vec = None
+
+    print('         Training Shape:', X.shape)
+
+    model = vMFMM(num_cluster, 'k++')  # cluster_num_class_specific = 50
+    model.fit(X, 30, max_it=150, tol=5e-6)
+    context_centers = model.mu
+
+    for i in range(context_centers.shape[0]):
+        context_centers[i] = context_centers[i] / np.sqrt(np.sum(context_centers[i] ** 2) + 1e-10)
+
+
+    if X.shape[0] > 1000:
+        rand_idx_2 = rm.sample(range(X.shape[0]), 1000)
+    else:
+        rand_idx_2 = range(X.shape[0])
+
+    perf = []
+    for feat in X[rand_idx_2]:
+        match = 0
+        for center in context_centers:
+            if np.sum(feat * center) > 0.50:
+                match = 1
+                break
+        perf.append(match)
+
+    print('         Complete  --  Feature Population Coverage: {}%'.format(np.mean(perf) * 100))
+
+    print()
+    print()
+
+    X = None
+
+    print('Stage 3: Making demo...')
+
+    feature_collection = []
+    img_collection = []
+
+
+    if dataset_train == 'pascal3d+':
+ 
