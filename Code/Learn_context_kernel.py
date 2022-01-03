@@ -62,4 +62,29 @@ def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_
     if not os.path.exists(storage_dir):
         os.makedirs(storage_dir)
 
-    storage_file = storage_dir + '{}_context_fea
+    storage_file = storage_dir + '{}_context_features_[{} - {}].pickle'.format(category, inner_bound, outer_bound)
+
+    if not os.path.exists(storage_file):
+
+        feat_vec = []
+
+        if dataset_train == 'pascal3d+':
+
+            image_files, mask_files, labels, bboxs = get_pascal3d_data(cats=[category], train=True, single_obj=False)
+            data_set = Multi_Object_Loader(image_files, mask_files, labels, bboxs, resize=True, min_size=200, max_size=3000, demo_img_return=True)
+
+        elif dataset_train == 'kins':
+            data_set = KINS_Dataset(category_list=[category], dataType='train', occ=[0, 1],
+                                    height_thrd=75, amodal_height=False, frac=1.0,
+                                    demo_img_return=True)
+
+        data_loader = DataLoader(dataset=data_set, batch_size=1, shuffle=False)
+
+        N = data_loader.__len__()
+
+        for ii, data in enumerate(data_loader):
+            if dataset_train == 'pascal3d+':
+                input, label, bbox, gt_mask, scale, demo_img, img_path = data
+
+            elif dataset_train == 'kins':
+                input, gt_labels, bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path = 
