@@ -87,4 +87,36 @@ def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_
                 input, label, bbox, gt_mask, scale, demo_img, img_path = data
 
             elif dataset_train == 'kins':
-                input, gt_labels, bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path = 
+                input, gt_labels, bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path = data
+            bbox = bbox.numpy()
+
+            if input.shape[2] * input.shape[3] > 2000 * 2000:
+                continue
+
+            bbox = bbox[0]
+            layer_feature = extractor(input.cuda(device_ids[0]))[0].detach().cpu().numpy()
+            layer_feature = layer_feature.transpose((1, 2, 0))
+
+            # the sampling region must be the region within 'bounding box pad with outer_bound' and outside of 'bounding box pad with inner_bound'
+            # L2 normalization is applied within the mask_features
+            feat_vec = feat_vec + mask_features(layer_feature, bbox, input.shape[2:4], inner_bound, outer_bound)
+
+            if ii % 10 == 0:
+                print("{}/{}      Collected:     {}          ".format(ii, N, len(feat_vec)), end='\r')
+                if ii == 2000:
+                    break
+
+        print()
+        with open(storage_file, 'wb') as fh:
+            pickle.dump(feat_vec, fh)
+    else:
+        with open(storage_file, 'rb') as fh:
+            feat_vec = pickle.load(fh)
+
+    print('         Complete  --  {} features found'.format(len(feat_vec)))
+    print()
+    print()
+
+    print('Stage 2: Feature Clustering')
+    rm.seed(0)
+    X = np.ar
