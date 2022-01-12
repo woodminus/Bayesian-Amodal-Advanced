@@ -187,4 +187,33 @@ def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_
             continue
 
         layer_feature = extractor(input.cuda(device_ids[0]))[0].detach().cpu().numpy()
-        iheight, iwidth
+        iheight, iwidth = layer_feature.shape[1:3]
+        lff = layer_feature.reshape(layer_feature.shape[0], -1).T
+        lff_norm = lff / (np.sqrt(np.sum(lff ** 2, 1) + 1e-10).reshape(-1, 1)) + 1e-10
+
+        lff_norm = lff_norm.reshape(iheight, iwidth, -1).astype(np.float32).T
+        feat_norm = lff_norm.transpose((2, 1, 0))
+
+        feature_collection.append(feat_norm)
+        img_collection.append(img)
+
+        if ii > 100:
+            break
+
+    # go through all the contexts
+    for context_center_ii in range(context_centers.shape[0]):
+        print('         Center {}/{}'.format(context_center_ii, context_centers.shape[0]), end='\r')
+
+        context_center = context_centers[context_center_ii]
+
+        max_val = []
+        context_activation_collection = []
+
+        for i in range(len(feature_collection)):
+            activation = feature_collection[i]
+            # context_activation = np.log(np.sum(activation * context_center, axis=2) + 1e-6)
+            context_activation = np.sum(activation * context_center, axis=2)
+            context_activation_collection.append(context_activation)
+            max_val.append(np.max(context_activation))
+
+        rank_ind = np.argsort(max_val)[::-1
