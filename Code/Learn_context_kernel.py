@@ -242,4 +242,25 @@ def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_
             :] = cv2.resize(img_patch, (demo_size, demo_size))
 
             if r < 5:
-                visualize(img, context_act, demo_kernel_dir + 'kernel_demo_{}_{}
+                visualize(img, context_act, demo_kernel_dir + 'kernel_demo_{}_{}_{}'.format(category, context_center_ii, r),
+                          cbar=True)
+
+        cv2.imwrite(demo_kernel_dir + '{}_context_center_{}.jpg'.format(category, context_center_ii), canvas)
+
+    print()
+    print()
+
+    final_dir = init_dir + 'context_kernel_{}_{}/'.format(layer, dataset_train)
+    if not os.path.exists(final_dir):
+        os.makedirs(final_dir)
+    final_file = final_dir + '{}_{}.npy'.format(category, num_cluster)
+    np.save(final_file, context_centers)
+
+
+if __name__ == '__main__':
+
+    extractor = get_backbone_extractor()
+    print('Number of Context Features Per Category:', context_cluster)
+
+    for category in categories['train']:            # ['bicycle','car']:
+        learn_context_feature(category, inner_bound=32, outer_bound=128, num_cluster=context_cluster)
