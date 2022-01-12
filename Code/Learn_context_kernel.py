@@ -216,4 +216,30 @@ def learn_context_feature(category, inner_bound=16, outer_bound=128, percentage_
             context_activation_collection.append(context_activation)
             max_val.append(np.max(context_activation))
 
-        rank_ind = np.argsort(max_val)[::-1
+        rank_ind = np.argsort(max_val)[::-1]
+
+        # making images
+        demo_kernel_dir = storage_dir + '{}_kernel_demo_{}/'.format(category, num_cluster)
+        if not os.path.exists(demo_kernel_dir):
+            os.makedirs(demo_kernel_dir)
+        rf_size = 16
+        demo_size = 100
+        canvas = np.zeros((demo_size * 4, demo_size * 4, 3))
+        for r in range(16):
+            img = img_collection[rank_ind[r]]
+            context_act = context_activation_collection[rank_ind[r]]
+
+            row_num = int(r / 4)
+            col_num = r % 4
+
+            ind = np.unravel_index(np.argmax(context_activation_collection[rank_ind[r]], axis=None),
+                                   context_activation_collection[rank_ind[r]].shape)
+            x = int(ind[0] / context_act.shape[0] * img.shape[0])
+            y = int(ind[1] / context_act.shape[1] * img.shape[1])
+            img_patch = img[x:min(x + rf_size, img.shape[0]), y:min(y + rf_size, img.shape[1]), :]
+
+            canvas[row_num * demo_size: (row_num + 1) * demo_size, col_num * demo_size: (col_num + 1) * demo_size,
+            :] = cv2.resize(img_patch, (demo_size, demo_size))
+
+            if r < 5:
+                visualize(img, context_act, demo_kernel_dir + 'kernel_demo_{}_{}
