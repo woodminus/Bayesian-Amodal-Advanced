@@ -428,3 +428,47 @@ def learn_mix_model_vMF(category, num_layers=2, num_clusters_per_layer=2, frac_d
         prob_map_bg = np.array(prior[kk][1])
 
         graph_prior(prob_map_fg, prob_map_bg, prior_dir + '{}_{}'.format(category, kk))
+
+    savename = os.path.join(mixdir, 'mmodel_{}_K{}_FEATDIM{}_{}_specific_view_{}.pickle'.format(category, K, vc_num, layer, context_cluster))
+    with open(savename, 'wb') as fh:
+        pickle.dump([alpha, beta, prior], fh)
+
+
+if __name__ == '__main__':
+
+    model_tag = 'bayesian'
+
+    net = get_compnet_head(mix_model_dim_reduction=False, mix_model_suffix='WILL_CAUSE_ERROR')
+
+    # =================== Load up new vcs
+    new_vcs = torch.load('new_vcs_06-09-2021-23-37.pt')
+    net.vc_conv1o1 = Conv1o1Layer(new_vcs)
+    print('New VCs loaded.')
+    # =================== Load up new vcs
+
+    try:
+        with open(init_dir + 'context_thrds_{}/context_thrd_5.pickle'.format(dataset_train), 'rb') as fh:
+            context_thrds = pickle.load(fh)
+    except:
+        context_thrds = dict()
+        for category in categories['train']:
+            context_thrds[category] = 0.54
+
+
+    for it in range(ITERATION):
+
+        mixdir = init_dir + 'mix_model_vmf_{}_EM_all_context_{}_it{}/'.format(dataset_train, model_tag, it)
+        if not os.path.exists(mixdir):
+            os.makedirs(mixdir)
+
+        if it == 0:
+            print('First Iteration: No Model Loading.')
+        else:
+            print('Load Model from iteration {}...'.format(it - 1))
+            net.update_mixture_models(get_mixture_models(dim_reduction=False, tag='_{}_it{}'.format(model_tag, it - 1)))
+            net.update_fused_models(omega=0.2)
+
+        for category in categories['train']:        #categories['train']:
+
+            for num_layers in [3]:
+                learn_mix_model_vMF(category, num_layers=num_layers, num_clusters_per_layer=2, iteration=it, CONTEXT_THRD=context_thrds[category])
