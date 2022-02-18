@@ -35,4 +35,31 @@ bool_pytorch = True
 
 for category in categories:
 	cat_idx = categories.index(category)
-	print('{} / {}'.format(c
+	print('{} / {}'.format(cat_idx,len(categories)))
+
+	imgset = KINS_Compnet_Train_Dataset(category=category, height_thrd=height_threshold)
+	data_loader = DataLoader(dataset=imgset, batch_size=1, shuffle=False)
+	N= min(data_loader.__len__(), nimg_per_cat)
+
+	savename = os.path.join(sim_dir,'simmat_mthrh045_{}_K{}_random.pickle'.format(category,vc_num))
+	if not os.path.exists(savename):
+		r_set = [None for nn in range(N)]
+		for ii,data in enumerate(data_loader):
+			input, demo_img, img_path, true_pad = data
+			if imgs_par_cat[cat_idx]<N:
+				with torch.no_grad():
+					layer_feature = extractor(input.cuda(device_ids[0]))[0].detach().cpu().numpy()
+				iheight,iwidth = layer_feature.shape[1:3]
+				lff = layer_feature.reshape(layer_feature.shape[0],-1).T
+				lff_norm = lff / (np.sqrt(np.sum(lff ** 2, 1) + 1e-10).reshape(-1, 1)) + 1e-10
+				r_set[ii] = cdist(lff_norm, centers, 'cosine').reshape(iheight,iwidth,-1)
+				imgs_par_cat[cat_idx]+=1
+
+		print('Determine best threshold for binarization - {} ...'.format(category))
+		nthresh=20
+		magic_thhs=range(nthresh)
+		coverage = np.zeros(nthresh)
+		act_per_pix = np.zeros(nthresh)
+		layer_feature_b = [None for nn in range(100)]
+		magic_thhs = np.asarray([x*1/nthresh for x in range(nthresh)])
+		for idx,magic_thh in en
