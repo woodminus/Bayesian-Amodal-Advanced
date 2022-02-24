@@ -96,4 +96,22 @@ for category in categories:
 				end2 = min((ss2+1)*N_sub, N)
 				if ss1==ss2:
 					inputs = [(layer_feature_b_ss1, nn) for nn in range(end2-start2)]
-					para_rst = np.array(Parallel(n_jobs=paral_num)(delayed(vc_dis
+					para_rst = np.array(Parallel(n_jobs=paral_num)(delayed(vc_dis_paral)(i) for i in inputs))
+
+				else:
+					layer_feature_b_ss2 = layer_feature_b[start2:end2]
+					inputs = [(layer_feature_b_ss2, lfb) for lfb in layer_feature_b_ss1]
+					para_rst = np.array(Parallel(n_jobs=paral_num)(delayed(vc_dis_paral_full)(i) for i in inputs))
+
+				mat_dis1[start1:end1, start2:end2] = para_rst[:,0]
+				mat_dis2[start1:end1, start2:end2] = para_rst[:,1]
+
+				_ee = time.time()
+				print('comptSimMat iter time: {}'.format((_ee-_ss)/60))
+
+		_e = time.time()
+		print('comptSimMat total time: {}'.format((_e-_s)/60))
+
+		with open(savename, 'wb') as fh:
+			print('saving at: '+savename)
+			pickle.dump([mat_dis1, mat_dis2], fh)
