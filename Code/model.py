@@ -140,4 +140,31 @@ def get_mixture_models(dim_reduction=True, tag='_it2', dataset_override=None):
         try:
             alpha, beta, prior = np.load(load_path, allow_pickle=True)
         except:
-            erro
+            error_message('Failed to load Mixture Model: {} \nInput filename: {}'.format(category.upper(), load_path))
+            FG_Models.append(None)
+            FG_prior.append(None)
+            CNTXT_Models.append(None)
+            CNTXT_prior.append(None)
+            continue
+
+        mix_fg = np.array(alpha)
+        mix_context = np.array(beta)
+        prior_fg = np.array(prior)[:, 0, :, :]
+        prior_context = np.array(prior)[:, 1, :, :]
+
+        # Reduce dimensions of the mixture model since most of the boundary regions only sampled one or two images during model building
+        if dim_reduction:
+            old_dim = prior_fg.shape
+            prior_whole = prior_fg + prior_context
+            h_cut=1
+            w_cut=1
+            while np.sum(prior_whole[:, h_cut:-h_cut, :].reshape(-1, 1)) / np.sum(prior_whole.reshape(-1, 1)) > 0.995:
+                h_cut += 1
+
+            while np.sum(prior_whole[:, :, w_cut:-w_cut].reshape(-1, 1)) / np.sum(prior_whole.reshape(-1, 1)) > 0.995:
+                w_cut += 1
+
+            mix_fg = mix_fg[:, :, w_cut:-w_cut, h_cut:-h_cut]
+            mix_context = mix_context[:, :, w_cut:-w_cut, h_cut:-h_cut]
+            prior_fg = prior_fg[:, h_cut:-h_cut, w_cut:-w_cut]
+            prior_context = prio
