@@ -108,4 +108,36 @@ def get_clutter_models():
                 clutter[i] = clutter[i] / clutter[i].sum()
 
         elif nn_type == 'resnext':
-            for suf in ['_general', '_ijcv']:       # the first clutter is the general one 
+            for suf in ['_general', '_ijcv']:       # the first clutter is the general one used for classification, the rest is used for segmentation
+                clutter = np.concatenate((clutter, np.load( meta_dir + 'ML_{}/{}_{}_clutter_model{}.npy'.format(nn_type, nn_type, layer, suf)) ), axis=0)
+    except:
+        error_message('Failed to load Clutter Models.')
+
+    clutter = clutter[:, :, np.newaxis, np.newaxis]
+
+    #remove clutter TODO
+    # clutter = np.zeros(clutter.shape)
+    clutter = torch.from_numpy(clutter).type(torch.FloatTensor)
+
+    return clutter
+
+def get_mixture_models(dim_reduction=True, tag='_it2', dataset_override=None):
+    if dataset_override != None:
+        dataset = dataset_override
+    else:
+        dataset = dataset_train
+
+    if tag == '_cross_domain':
+        cats = categories['kinsv']
+    else:
+        cats = categories['train']
+    FG_Models = []
+    FG_prior = []
+    CNTXT_Models = []
+    CNTXT_prior = []
+    for category in cats:
+        load_path = meta_dir + 'ML_{}/mix_model_vmf_{}_EM_all_context{}/mmodel_{}_K{}_FEATDIM512_{}_specific_view_{}.pickle'.format(nn_type, dataset, tag, category, K, layer, context_cluster)
+        try:
+            alpha, beta, prior = np.load(load_path, allow_pickle=True)
+        except:
+            erro
