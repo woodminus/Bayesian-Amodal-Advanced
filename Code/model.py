@@ -77,4 +77,35 @@ def get_vc(dataset_override=None):
     
     vc = vc[:, :, np.newaxis, np.newaxis]
     vc = torch.from_numpy(vc).type(torch.FloatTensor)
-    return vc.c
+    return vc.cuda(device_ids[0])
+
+
+# return context cluster centers
+def get_context(dataset_override=None):
+    if dataset_override != None:
+        dataset = dataset_override
+    else:
+        dataset = dataset_train
+    context = np.zeros((0, feature_num))
+    for category in categories['train']:
+        file_name = meta_dir + 'ML_{}/context_kernel_{}_{}/{}_{}.npy'.format(nn_type, layer, dataset, category, context_cluster)
+        try:
+            context = np.concatenate((context, np.load(file_name)), axis=0)
+        except:
+            continue
+
+    context = context[:, :, np.newaxis, np.newaxis]
+    context = torch.from_numpy(context).type(torch.FloatTensor)
+    return context.cuda(device_ids[0])
+
+def get_clutter_models():
+    clutter = np.zeros((0, vc_num))
+
+    try:
+        if nn_type == 'vgg':
+            clutter = np.load(meta_dir + 'ML_{}/CLUTTER_MODEL_POOL4.pkl'.format(nn_type, nn_type, layer), allow_pickle=True)
+            for i in range(clutter.shape[0]):
+                clutter[i] = clutter[i] / clutter[i].sum()
+
+        elif nn_type == 'resnext':
+            for suf in ['_general', '_ijcv']:       # the first clutter is the general one 
