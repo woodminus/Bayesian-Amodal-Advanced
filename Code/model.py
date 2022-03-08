@@ -167,4 +167,30 @@ def get_mixture_models(dim_reduction=True, tag='_it2', dataset_override=None):
             mix_fg = mix_fg[:, :, w_cut:-w_cut, h_cut:-h_cut]
             mix_context = mix_context[:, :, w_cut:-w_cut, h_cut:-h_cut]
             prior_fg = prior_fg[:, h_cut:-h_cut, w_cut:-w_cut]
-            prior_context = prio
+            prior_context = prior_context[:, h_cut:-h_cut, w_cut:-w_cut]
+            new_dim = prior_fg.shape
+
+            print('Dim Reduction - {}: ({}, {}) --> ({}, {})'.format(category, old_dim[1], old_dim[2], new_dim[1], new_dim[2]))
+
+        # removing prior TODO
+        # prior_fg = np.ones(prior_fg.shape) * 0.5
+        # prior_context = np.ones(prior_context.shape) * 0.5
+        #
+        # assert np.max(prior_fg) == np.min(prior_fg)
+        # assert np.max(prior_context) == np.min(prior_context)
+
+
+        mix_fg = np.transpose(mix_fg, [0, 1, 3, 2])
+        mix_context = np.transpose(mix_context, [0, 1, 3, 2])
+
+
+        # dealing with empty kernels                                  mix_fg.shape = [8, 512, H, W]
+        mix_fg = np.transpose(mix_fg, [2, 3, 0, 1])                 # mix_fg.shape = [H, W, 8, 512]
+        zero_map = (np.sum(mix_fg, axis=3) == 0)
+        vc_num = mix_fg.shape[3]
+        avg_feature = mix_fg.reshape(-1, vc_num).sum(0)
+        avg_feature = avg_feature / np.sum(avg_feature)
+        mix_fg[zero_map] = avg_feature
+        mix_fg = np.transpose(mix_fg, [2, 3, 0, 1])
+
+        #dealing with empty kernels                                   mix_
