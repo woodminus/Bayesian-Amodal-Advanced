@@ -193,4 +193,26 @@ def get_mixture_models(dim_reduction=True, tag='_it2', dataset_override=None):
         mix_fg[zero_map] = avg_feature
         mix_fg = np.transpose(mix_fg, [2, 3, 0, 1])
 
-        #dealing with empty kernels                                   mix_
+        #dealing with empty kernels                                   mix_context.shape = [8, 512, H, W]
+        mix_context = np.transpose(mix_context, [2, 3, 0, 1])       # mix_context.shape = [H, W, 8, 512]
+        zero_map = (np.sum(mix_context, axis=3) == 0)
+        vc_num = mix_context.shape[3]
+        avg_feature = mix_context.reshape(-1, vc_num).sum(0)
+        avg_feature = avg_feature / np.sum(avg_feature)
+        mix_context[zero_map] = avg_feature
+        mix_context = np.transpose(mix_context, [2, 3, 0, 1])
+
+        # dealing with empty kernels                                   prior_fg.shape = [8, H, W]
+        prior_fg[prior_fg == 0] = np.min(prior_fg[prior_fg > 0])
+
+        # dealing with empty kernels                                   prior_context.shape = [8, H, W]
+        prior_context[prior_context == 0] = np.min(prior_context[prior_context > 0])
+
+        mix_fg = torch.from_numpy(mix_fg).type(torch.FloatTensor)
+        FG_Models.append( nn.Parameter(mix_fg.cuda(device_ids[0])) )
+
+        mix_context = torch.from_numpy(mix_context).type(torch.FloatTensor)
+        CNTXT_Models.append( nn.Parameter(mix_context.cuda(device_ids[0])) )
+
+        prior_fg = torch.from_numpy(prior_fg).type(torch.FloatTensor)
+        FG_prior.append( nn.Parameter(prior_fg.cud
