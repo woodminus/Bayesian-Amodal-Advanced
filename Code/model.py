@@ -244,4 +244,15 @@ def get_compnet_head(mix_model_dim_reduction=True, mix_model_suffix='', dataset_
 
 # generate and return the entire rpn architecture
 def get_rpn():
-    rpn = RegionProposalNetwork(in_channels=feature_n
+    rpn = RegionProposalNetwork(in_channels=feature_num,
+                                mid_channels=feature_num,
+                                ratios=rpn_configs['ratios'],
+                                anchor_scales=rpn_configs['anchor_scales'],
+                                feat_stride=rpn_configs['feat_stride'])
+
+    return rpn.cuda(device_ids[0])
+
+def error_message(str):
+    print('=============================================')
+    print(str)
+    print('=============================================\n')
