@@ -215,4 +215,33 @@ def get_mixture_models(dim_reduction=True, tag='_it2', dataset_override=None):
         CNTXT_Models.append( nn.Parameter(mix_context.cuda(device_ids[0])) )
 
         prior_fg = torch.from_numpy(prior_fg).type(torch.FloatTensor)
-        FG_prior.append( nn.Parameter(prior_fg.cud
+        FG_prior.append( nn.Parameter(prior_fg.cuda(device_ids[0])) )
+
+        prior_context = torch.from_numpy(prior_context).type(torch.FloatTensor)
+        CNTXT_prior.append( nn.Parameter(prior_context.cuda(device_ids[0])) )
+
+
+    return [FG_Models, FG_prior, CNTXT_Models, CNTXT_prior]
+
+# generate and return the entire compnet architecture
+def get_compnet_head(mix_model_dim_reduction=True, mix_model_suffix='', dataset_override=None):
+
+    if TABLE_NUM == 2:
+        dataset_override = 'pascal3d+'
+        mix_model_suffix = '_kinsv'
+        vMF_kappa_ = vMF_kappas['{}_{}_{}'.format(nn_type, layer, dataset_override)]
+    else:
+        vMF_kappa_ = vMF_kappa 
+
+    net = Net(Feature_Extractor=get_backbone_extractor(), 
+              VC_Centers=get_vc(dataset_override=dataset_override),
+              Context_Kernels=get_context(dataset_override=dataset_override),
+              Mixture_Models=get_mixture_models(dim_reduction=mix_model_dim_reduction, tag=mix_model_suffix, dataset_override=dataset_override),
+              Clutter_Models=get_clutter_models(), 
+              vMF_kappa=vMF_kappa_)
+
+    return net.cuda(device_ids[0])
+
+# generate and return the entire rpn architecture
+def get_rpn():
+    rpn = RegionProposalNetwork(in_channels=feature_n
