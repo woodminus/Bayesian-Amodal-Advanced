@@ -79,4 +79,32 @@ def make_demo(data_loader, rank, img_index, obj_index, exp_set_up, out_dir=''):
     input_bbox = None
     gt_seg = None
 
-    input_tensor, gt_labels, gt_inmodal_bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path, failed = data_l
+    input_tensor, gt_labels, gt_inmodal_bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path, failed = data_loader.dataset.__getitem__(img_index)
+
+
+    gt_inmodal_bbox, gt_amodal_bbox = torch.tensor(gt_inmodal_bbox), torch.tensor(gt_amodal_bbox)
+
+    if input_bbox_type == 'inmodal':
+        input_bbox = copy.deepcopy(gt_inmodal_bbox)
+    elif input_bbox_type == 'amodal':
+        input_bbox = copy.deepcopy(gt_amodal_bbox)
+
+    if input_gt_label:
+        input_label = gt_labels.copy()
+    try:
+        with torch.no_grad():
+            c, h, w = input_tensor.shape
+            input_tensor = torch.tensor(input_tensor).view(1, c, h, w)
+
+            pred_scores, pred_confidence, pred_amodal_bboxes, pred_segmentations = net(org_x=input_tensor.cuda(device_ids[0]),
+                                                                                       bboxes=input_bbox[obj_index:obj_index+1],
+                                                                                       bbox_type=input_bbox_type,
+                                                                                       input_label=input_label[obj_index:obj_index+1])
+    except:
+        print('error')
+
+    pred_segmentation = pred_segmentations[0]
+    pixel_cls_b = pred_segmentation['pixel_cls']
+    pixel_cls_score = pred_segmentation['pixel_cls_score']
+
+    # bo
