@@ -48,4 +48,35 @@ def make_three_dimensional_demo(pixel_cls, pixel_cls_score):
     # treat an rbg image as three layers heatmap
 
     occ_layer = ( (pixel_cls == occ_label).astype(float) * (pixel_cls_score - occ_range[0]) / (occ_range[1] - occ_range[0]) * 255 ).astype(int)[:, :, np.newaxis]
-    fg_layer  = ( (pixel_cls == fg_label).astype(floa
+    fg_layer  = ( (pixel_cls == fg_label).astype(float) * (pixel_cls_score - fg_range[0]) / (fg_range[1] - fg_range[0]) * 255 ).astype(int)[:, :, np.newaxis]
+    bg_layer  = ( (pixel_cls == bg_label).astype(float) * (pixel_cls_score - bg_range[0]) / (bg_range[1] - bg_range[0]) * 255 ).astype(int)[:, :, np.newaxis]
+
+    # cv2.imwrite('temp_pred_check_o.jpg', occ_layer)
+    # cv2.imwrite('temp_pred_check_f.jpg', fg_layer)
+    # cv2.imwrite('temp_pred_check_c.jpg', bg_layer)
+
+    img = np.concatenate((fg_layer, bg_layer, occ_layer), axis=2)
+
+    return img
+
+def print_(str, file=None):
+    print(str)
+    if file:
+        print(str, file=file)
+
+def make_demo(data_loader, rank, img_index, obj_index, exp_set_up, out_dir=''):
+    mask_type, input_bbox_type, input_gt_label, bmask_thrd = exp_set_up
+
+    out_dir_m = out_dir + '{}/'.format(mask_type)
+    if not os.path.exists(out_dir_m):
+        os.mkdir(out_dir_m)
+
+    out_dir_p = out_dir + 'pixel_cls/'
+    if not os.path.exists(out_dir_p):
+        os.mkdir(out_dir_p)
+
+    input_label = None
+    input_bbox = None
+    gt_seg = None
+
+    input_tensor, gt_labels, gt_inmodal_bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path, failed = data_l
