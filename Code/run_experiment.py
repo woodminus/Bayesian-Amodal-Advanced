@@ -107,4 +107,32 @@ def make_demo(data_loader, rank, img_index, obj_index, exp_set_up, out_dir=''):
     pixel_cls_b = pred_segmentation['pixel_cls']
     pixel_cls_score = pred_segmentation['pixel_cls_score']
 
-    # bo
+    # box = np.copy(gt_amodal_bbox[obj_index])                      #TODO
+    box = np.copy(pred_amodal_bboxes[0])
+    height_box = box[2] - box[0]
+    width_box = box[3] - box[1]
+
+    box[0] = max(0, box[0] - 0.1 * height_box)
+    box[1] = max(0, box[1] - 0.1 * width_box)
+    box[2] = min(input_tensor.shape[2], box[2] + 0.1 * height_box)
+    box[3] = min(input_tensor.shape[3], box[3] + 0.1 * width_box)
+    box = box.astype(int)
+
+    copy_img = draw_box(demo_img.copy(), gt_inmodal_bbox[obj_index], color=(255, 0, 0), thick=2)
+    copy_img = draw_box(copy_img, pred_amodal_bboxes[0], color=(0, 255, 0), thick=2)
+    demo_img = copy_img[box[0]:box[2], box[1]:box[3], :]
+    pixel_cls_img = make_three_dimensional_demo(pixel_cls=pixel_cls_b, pixel_cls_score=pixel_cls_score)[box[0]:box[2],
+        box[1]:box[3], :]
+
+    if mask_type == 'amodal':
+        gt_seg = gt_amodal_segmentation[obj_index]
+
+    elif mask_type == 'inmodal':
+        gt_seg = gt_inmodal_segmentation[obj_index]
+
+    elif mask_type == 'occ':
+        gt_seg = (gt_amodal_segmentation[obj_index] - gt_inmodal_segmentation[obj_index] > 0).astype(float)
+
+    pred_seg = (pred_segmentation[mask_type] >= bmask_thrd).astype(float)
+
+    visualize_multi(demo_im
