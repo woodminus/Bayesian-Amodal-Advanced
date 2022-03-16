@@ -135,4 +135,34 @@ def make_demo(data_loader, rank, img_index, obj_index, exp_set_up, out_dir=''):
 
     pred_seg = (pred_segmentation[mask_type] >= bmask_thrd).astype(float)
 
-    visualize_multi(demo_im
+    visualize_multi(demo_img, [pred_seg[box[0]:box[2], box[1]:box[3]], gt_seg[box[0]:box[2], box[1]:box[3]]], '{}{}_img{}_obj{}'.format(out_dir_m, rank, img_index, obj_index))
+    cv2.imwrite('{}img{}_obj{}.jpg'.format(out_dir_p, img_index, obj_index), np.concatenate((demo_img, pixel_cls_img), axis=0))
+
+
+def same_filename(name1, name2):
+    img_dir1, img_name1 = name1.split('/')[-2:]
+    img_dir2, img_name2 = name2.split('/')[-2:]
+
+    return (img_dir1 == img_dir2) and (img_name1 == img_name2)
+
+def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_modes=('inmodal', 'amodal'), input_bbox_type='inmodal', input_gt_label=True, search_for_file=True):
+    N = data_loader.__len__()
+
+    cls_acc = []
+    amodal_bbox_iou = []
+    amodal_height = []
+    occ = []
+    disp_iou, disp_counter = 0, 0
+
+    mask_dict = dict()
+    for eval in eval_modes:
+        mask_dict[eval] = {'img_index': [], 'obj_index': [], 'iou': [], 'bmask_thrd': binary_mask_thrds[eval]}
+
+    input_bbox = None
+    input_label = None
+    gt_seg = None
+    RPN_PREDICTION = []
+
+    for ii, data in enumerate(data_loader):
+
+        input_tensor, gt_labels, gt_inmodal_bbox, gt_amodal_bbox, gt_inmodal_segmentation,
