@@ -165,4 +165,35 @@ def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_
 
     for ii, data in enumerate(data_loader):
 
-        input_tensor, gt_labels, gt_inmodal_bbox, gt_amodal_bbox, gt_inmodal_segmentation,
+        input_tensor, gt_labels, gt_inmodal_bbox, gt_amodal_bbox, gt_inmodal_segmentation, gt_amodal_segmentation, gt_occ, demo_img, img_path, failed = data
+        if failed.item():
+            continue
+
+        gt_labels, gt_occ = gt_labels[0].numpy(), gt_occ[0].numpy()
+        gt_inmodal_bbox, gt_amodal_bbox = gt_inmodal_bbox[0], gt_amodal_bbox[0]
+        gt_inmodal_segmentation, gt_amodal_segmentation = gt_inmodal_segmentation[0].numpy(), gt_amodal_segmentation[0].numpy()
+
+        if input_bbox_type == 'inmodal':
+            input_bbox = copy.deepcopy(gt_inmodal_bbox)
+        elif input_bbox_type == 'amodal':
+            input_bbox = copy.deepcopy(gt_amodal_bbox)
+
+        if input_gt_label:
+            input_label = gt_labels.copy()
+
+        bad_bbox = False
+        for bi, box in enumerate(input_bbox):
+            if box[2] - box[0] == 0 or box[3] - box[1] == 0:
+                bad_bbox = True
+                break
+        if bad_bbox:
+            continue
+
+        if TABLE_NUM == 1 or TABLE_NUM == 2:
+            load_ii = ii
+            if search_for_file:
+                for load_ii in range(len(rpn_results)):
+                    if same_filename(rpn_results[load_ii]['file_name'], img_path[0]): 
+                        break
+            else:
+   
