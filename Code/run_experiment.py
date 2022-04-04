@@ -219,4 +219,35 @@ def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_
         try:
             with torch.no_grad():
                 pred_scores, pred_confidence, pred_amodal_bboxes, pred_segmentations = net(org_x=input_tensor.cuda(device_ids[0]), bboxes=rpn_input_box, bbox_type=input_bbox_type, input_label=input_label)
-        e
+        except:
+            print('error')
+            continue
+
+        pred_acc = (gt_labels == pred_scores.argmax(1).cpu().numpy()).astype(float)
+
+        for obj_idx in range(len(pred_amodal_bboxes)):
+
+            pred_segmentation = pred_segmentations[obj_idx]
+
+            if np.sum(gt_inmodal_segmentation[obj_idx]) == 0:
+                continue
+
+            for mask_type in eval_modes:
+                bmask_thrd = mask_dict[mask_type]['bmask_thrd']
+
+                if mask_type == 'amodal':
+                    gt_seg = gt_amodal_segmentation[obj_idx]
+
+                elif mask_type == 'inmodal':
+                    gt_seg = gt_inmodal_segmentation[obj_idx]
+
+                elif mask_type == 'occ':
+                    gt_seg = (gt_amodal_segmentation[obj_idx] - gt_inmodal_segmentation[obj_idx] > 0).astype(float)
+
+                pred_seg = pred_segmentation[mask_type]
+                pred_seg_b = (pred_seg >= bmask_thrd).astype(float)
+
+                iou = np.sum(pred_seg_b * gt_seg) / np.sum((pred_seg_b + gt_seg > 0.5).astype(int))
+                mask_dict[mask_type]['iou'].append(iou)
+                mask_dict[mask_type]['img_index'].append(ii)
+                mask_dict[mask_type]['obj_index'].appen
