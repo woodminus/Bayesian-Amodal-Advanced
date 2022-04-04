@@ -302,4 +302,43 @@ def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_
             i = 0
             for ri in rank_ind:
                 if i % 50 == 0 or i < 75:
-                    make_demo(data_loader, rank=i, img_index=m_dict['img_index'][ri], obj_index=m_dict['obj_index']
+                    make_demo(data_loader, rank=i, img_index=m_dict['img_index'][ri], obj_index=m_dict['obj_index'][ri], exp_set_up=[mask_type, input_bbox_type, input_gt_label, mask_dict[mask_type]['bmask_thrd']], out_dir=out_dir)
+                    print('    {}  -  demo {}/{}     '.format(category, i, iou_perf.shape[0]), end='\r')
+                i += 1
+
+    print_(print_line, file=file)
+
+    return output
+
+
+if __name__ == '__main__':
+
+    ### === Default Settings === ###
+
+    bool_gt_label = True          
+    bool_demo_seg = False
+    tag = 'final'
+    fraction_to_load = 1
+
+    dataType = 'test'
+    eval_modes = ['inmodal', 'occ', 'amodal']
+    binary_mask_thrds = {'amodal': 0.5, 'inmodal': 0.5, 'occ': 0.5}
+    omega = 0.2
+
+    net = get_compnet_head(mix_model_dim_reduction=True, mix_model_suffix='_final')
+
+    ### === Default Assertions === ###
+
+    for eval in eval_modes:
+        assert eval in ['inmodal', 'occ', 'amodal']
+
+    ### === Eval Dataset Settings === ###
+
+    if TABLE_NUM == 1:
+        fg_levels = [0, 1, 2, 3]            
+        bg_levels = [1, 2, 3]
+    elif TABLE_NUM == 2:
+        height_thrd = 50
+        occ_bounds = [[0, 0], [0.0001, 0.3], [0.3001, 0.6], [0.6001, 0.9]]   #[0, 0], [0.0001, 0.3], [0.3001, 0.6], [0.6001, 0.9]
+    elif TABLE_NUM == 3:
+        fg_levels = [0,
