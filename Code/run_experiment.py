@@ -341,4 +341,43 @@ if __name__ == '__main__':
         height_thrd = 50
         occ_bounds = [[0, 0], [0.0001, 0.3], [0.3001, 0.6], [0.6001, 0.9]]   #[0, 0], [0.0001, 0.3], [0.3001, 0.6], [0.6001, 0.9]
     elif TABLE_NUM == 3:
-        fg_levels = [0,
+        fg_levels = [0, 1, 2, 3]             
+        bg_levels = [0]
+
+
+
+
+    ### === Directory Settings === ###
+
+    overall_exp_dir = exp_dir + 'Table_{}_Model_{}_mIoU_{}/'.format(TABLE_NUM, MODEL_TYPE, tag)
+
+    if not os.path.exists(overall_exp_dir):
+        os.mkdir(overall_exp_dir)
+
+    plot_dir = overall_exp_dir + 'plot_{}/'.format(dataset_eval)
+    if not os.path.exists(plot_dir):
+        os.mkdir(plot_dir)
+
+    demo_dir = overall_exp_dir + 'demo_{}/'.format(dataset_eval)
+    if not os.path.exists(demo_dir):
+        os.mkdir(demo_dir)
+
+
+    ### === File Storages === ###
+
+    file = open(overall_exp_dir + 'exp_info_{}.txt'.format(dataset_eval), 'w')
+
+    if MODEL_TYPE == 'E2E':
+        if TABLE_NUM == 1 or TABLE_NUM == 3:
+            pretrain_file = '../Models/E2E/pascal_final.pth'
+
+        elif TABLE_NUM == 2:
+            pretrain_file = '../Models/E2E/kinsv_final.pth'
+
+        net.load_state_dict(torch.load(pretrain_file, map_location='cuda:{}'.format(device_ids[0]))['state_dict'])
+        print_('Loaded Pretrain Model: {}'.format(pretrain_file), file=file)
+    net.update_fused_models(omega=omega)
+
+    print_('\n\n', file=file)
+    print_('Experimental Tag: {}'.format(tag), file=file)
+    print_('{:
