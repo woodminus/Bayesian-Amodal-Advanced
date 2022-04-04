@@ -278,4 +278,28 @@ def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_
 
     print('RPN_iou:', np.mean(RPN_PREDICTION))
 
-    output['cls'] = {'amodal_bbox_iou': amodal_bbox_iou, 'cls_acc': cls_acc, 'amo
+    output['cls'] = {'amodal_bbox_iou': amodal_bbox_iou, 'cls_acc': cls_acc, 'amodal_height': amodal_height, 'occ': occ,
+                     'cls_acc_val' : cls_acc_val, 'amodal_bbox_iou_val' : amodal_bbox_iou_val, 'amodal_bbox_iou_val_correct_label' : amodal_bbox_iou_val_correct_label, 'num_objects': cls_acc.shape[0]}
+
+    print_line = '{:15}  - {:5} -  cls_acc: {:6.4f}     |     amodal_box_mIoU: {:6.4f}     '.format(category, output['cls']['num_objects'], cls_acc_val, amodal_bbox_iou_val)
+
+    for mask_type in eval_modes:
+        m_dict = mask_dict[mask_type]
+        iou_perf = np.array(m_dict['iou'])
+        iou_perf_cls = iou_perf * cls_acc
+
+        output[mask_type] = {'average iou': np.mean(iou_perf_cls), 'precision': np.mean((iou_perf_cls >= 0.5).astype(float)), 'num_objects': iou_perf.shape[0]}
+        print_line += '|     {}_mIoU: {:6.4f}     '.format(mask_type, output[mask_type]['average iou'])
+
+
+        if demo:
+            rank_ind = np.argsort(iou_perf_cls)[::-1]
+
+            out_dir = demo_dir + '{}/'.format(sub_tag)
+            if not os.path.exists(out_dir):
+                os.mkdir(out_dir)
+
+            i = 0
+            for ri in rank_ind:
+                if i % 50 == 0 or i < 75:
+                    make_demo(data_loader, rank=i, img_index=m_dict['img_index'][ri], obj_index=m_dict['obj_index']
