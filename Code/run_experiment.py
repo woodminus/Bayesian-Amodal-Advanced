@@ -250,4 +250,32 @@ def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_
                 iou = np.sum(pred_seg_b * gt_seg) / np.sum((pred_seg_b + gt_seg > 0.5).astype(int))
                 mask_dict[mask_type]['iou'].append(iou)
                 mask_dict[mask_type]['img_index'].append(ii)
-                mask_dict[mask_type]['obj_index'].appen
+                mask_dict[mask_type]['obj_index'].append(obj_idx)
+
+                if mask_type == 'amodal':
+                    disp_iou = disp_iou * disp_counter / (disp_counter + 1) + iou / (disp_counter + 1)
+                    disp_counter += 1
+
+            cls_acc.append(pred_acc[obj_idx])
+            amodal_bbox_iou.append(calc_iou(pred_box=pred_amodal_bboxes[obj_idx].numpy(), gt_box=gt_amodal_bbox[obj_idx].numpy()))
+            amodal_height.append(gt_amodal_bbox[obj_idx][2] - gt_amodal_bbox[obj_idx][0])
+            occ.append(gt_occ[obj_idx])
+
+        if ii % 10 == 0:
+            print('    {}  -  eval {}/{}     amodal_iou={:.2f}%         '.format(category, ii, N, disp_iou * 100), end='\r')
+
+    cls_acc = np.array(cls_acc)
+    amodal_bbox_iou = np.array(amodal_bbox_iou)
+    amodal_height = np.array(amodal_height)
+    occ = np.array(occ)
+
+    cls_acc_val = np.mean(cls_acc)
+
+    amodal_bbox_iou_val_correct_label = np.mean(amodal_bbox_iou[cls_acc == 1])
+    amodal_bbox_iou_val = np.mean(amodal_bbox_iou * cls_acc)
+
+    output = dict()
+
+    print('RPN_iou:', np.mean(RPN_PREDICTION))
+
+    output['cls'] = {'amodal_bbox_iou': amodal_bbox_iou, 'cls_acc': cls_acc, 'amo
