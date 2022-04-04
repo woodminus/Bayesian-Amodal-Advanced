@@ -380,4 +380,33 @@ if __name__ == '__main__':
 
     print_('\n\n', file=file)
     print_('Experimental Tag: {}'.format(tag), file=file)
-    print_('{:
+    print_('{:25}{}\n{:25}{}\n{:25}{}\n{:25}{}'.format('Table:', TABLE_NUM, 'Model type:', MODEL_TYPE, 
+        'Segmentation:', eval_modes, 'Backbone:', nn_type,), file=file)
+    net.remove_individual_models()
+
+    try:
+        with open(overall_exp_dir + '/exp_meta_{}.pickle'.format(dataset_eval), 'rb') as fh:
+            meta = pickle.load(fh)
+    except:
+        meta = dict()
+    combine_cats_iou = dict()
+
+
+    
+    for input_bbox_type in ['inmodal', 'amodal']:
+        l = '\n==================================================\n==================================================\nKnown Center (k.c.): ' + input_bbox_type=='amodal' + '\n'
+        print_(l, file=file)
+        if TABLE_NUM == 1:
+            print_('=========================\n{:25}{}\n{:25}{}\n\n'.format('FG_levels:', fg_levels, 'BG_levels:', bg_levels), file=file)
+
+            for fg_level in fg_levels:
+
+                eval_modes_ = copy.deepcopy(eval_modes)
+                bg_levels_ = bg_levels
+                if fg_level == 0:
+                    bg_levels_ = [0]
+                    if 'occ' in eval_modes_:
+                        eval_modes_.remove('occ')
+
+                for bg_level in bg_levels_:
+                    sub_t
