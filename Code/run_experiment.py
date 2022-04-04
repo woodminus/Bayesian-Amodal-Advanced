@@ -409,4 +409,19 @@ if __name__ == '__main__':
                         eval_modes_.remove('occ')
 
                 for bg_level in bg_levels_:
-                    sub_t
+                    sub_tag = 'FGL{}_BGL{}'.format(fg_level, bg_level)
+                    print('========FGL{} BGL{}========'.format(fg_level, bg_level))
+                    with open('../RPN_results/mrcnn_inmodal_RPN_FGL{}_BGL{}.pickle'.format(fg_level,
+                                                                                                    bg_level),
+                            'rb') as fh:
+                        rpn_results = pickle.load(fh)
+
+                    data_set = Occ_Veh_Dataset(cats=categories['eval'], dataType=dataType, train_types=[None], fg_level=fg_level,
+                                            bg_level=bg_level, single_obj=True, resize=False, crop_img=False,
+                                            crop_padding=48, data_range=[0, fraction_to_load], crop_central=False,
+                                            demo_img_return=True)
+                    data_loader = DataLoader(dataset=data_set, batch_size=1, shuffle=False)
+
+                    meta[sub_tag] = eval_performance(data_loader, rpn_results, category='all', demo=bool_demo_seg,
+                                                    eval_modes=eval_modes_, input_bbox_type=input_bbox_type,
+           
