@@ -196,4 +196,27 @@ def eval_performance(data_loader, rpn_results, demo=False, category='car', eval_
                     if same_filename(rpn_results[load_ii]['file_name'], img_path[0]): 
                         break
             else:
-   
+                if not same_filename(rpn_results[load_ii]['file_name'], img_path[0]):
+                    print('error, skip')
+                    continue
+            
+            rpn_input_box = []
+            for box in input_bbox:
+                box, iou = find_max_iou(rpn_results[load_ii]['bbox'], box.cpu().numpy())
+                RPN_PREDICTION.append(iou)
+                rpn_input_box.append(box.astype(int))
+        elif TABLE_NUM == 3:
+            rpn_input_box = []
+            for box in input_bbox:
+                img_name_sep = str(img_path[0]).split('/')
+                img_name = '/home/yihong/workspace/dataset/COCO/' + '/'.join(img_name_sep[-2:]) 
+                box, iou = find_max_iou(rpn_results[img_name]['bbox'], box.cpu().numpy())
+                RPN_PREDICTION.append(iou)
+                rpn_input_box.append(box.astype(int))
+
+        rpn_input_box = torch.tensor(np.stack(rpn_input_box))
+
+        try:
+            with torch.no_grad():
+                pred_scores, pred_confidence, pred_amodal_bboxes, pred_segmentations = net(org_x=input_tensor.cuda(device_ids[0]), bboxes=rpn_input_box, bbox_type=input_bbox_type, input_label=input_label)
+        e
