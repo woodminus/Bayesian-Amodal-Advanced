@@ -470,4 +470,27 @@ if __name__ == '__main__':
                         sub_tag = '{}FGL{}_BGL{}'.format(category, fg_level, bg_level)
 
                         data_set = COCOA_Dataset(cats=[category], dataTypes=['train', 'val'], fg_level=fg_level, resize=False, crop_img=False, crop_padding=48, data_range=[0, fraction_to_load], crop_central=False, demo_img_return=True)
-                      
+                        data_loader = DataLoader(dataset=data_set, batch_size=1, shuffle=False)
+
+                        meta[sub_tag] = eval_performance(data_loader, rpn_results, category=category, demo=bool_demo_seg, eval_modes=eval_modes_, input_bbox_type=input_bbox_type, input_gt_label=bool_gt_label)
+
+                    acc = 0
+                    amodal_box_iou = 0
+                    total = 0
+                    for eval in eval_modes_:
+                        combine_cats_iou[eval] = 0
+
+                    for category in categories['eval']:
+                        sub_tag = '{}FGL{}_BGL{}'.format(category, fg_level, bg_level)
+                        num_obj = meta[sub_tag]['cls']['cls_acc'].shape[0]
+                        if num_obj == 0:
+                            continue
+
+                        acc += meta[sub_tag]['cls']['cls_acc_val'] * num_obj
+                        amodal_box_iou += meta[sub_tag]['cls']['amodal_bbox_iou_val'] * num_obj
+                        total += num_obj
+
+                        for eval in eval_modes_:
+                            combine_cats_iou[eval] += meta[sub_tag][eval]['average iou'] * num_obj
+
+                    level_tag = 'FGL{}_BGL{}'.format(
