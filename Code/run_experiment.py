@@ -424,4 +424,25 @@ if __name__ == '__main__':
 
                     meta[sub_tag] = eval_performance(data_loader, rpn_results, category='all', demo=bool_demo_seg,
                                                     eval_modes=eval_modes_, input_bbox_type=input_bbox_type,
-           
+                                                    input_gt_label=bool_gt_label)
+
+        elif TABLE_NUM == 2:
+            print_('=========================\n{:25}{}\n{:25}{}\n\n'.format('Height_thrd:', height_thrd, 'Occ_bounds:', occ_bounds), file=file)
+
+            for occ_bound in occ_bounds:
+                occ_bound_str = '[{:.1f}, {:.1f}]'.format(occ_bound[0], occ_bound[1])
+                eval_modes_ = copy.deepcopy(eval_modes)
+
+                if occ_bound[1] == 0 and 'occ' in eval_modes_:
+                    eval_modes_.remove('occ')
+
+                print('========Height_thrd: {} - Occlusion_bound: {}========'.format(height_thrd, occ_bound_str))
+
+                with open('../RPN_results/mrcnn_inmodal_kins_RPN.pickle', 'rb') as fh:
+                    rpn_results = pickle.load(fh)
+
+                data_set = KINS_Dataset(category_list=categories['eval'], dataType=dataType, occ=occ_bound, height_thrd=height_thrd,
+                                        amodal_height=True, data_range=[0, fraction_to_load], demo_img_return=True)
+                data_loader = DataLoader(dataset=data_set, batch_size=1, shuffle=False)
+
+                meta['kinsv'] = eval_performance(data_loader, rpn_results, categ
