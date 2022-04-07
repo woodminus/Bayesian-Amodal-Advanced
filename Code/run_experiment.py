@@ -445,4 +445,29 @@ if __name__ == '__main__':
                                         amodal_height=True, data_range=[0, fraction_to_load], demo_img_return=True)
                 data_loader = DataLoader(dataset=data_set, batch_size=1, shuffle=False)
 
-                meta['kinsv'] = eval_performance(data_loader, rpn_results, categ
+                meta['kinsv'] = eval_performance(data_loader, rpn_results, category='kinsv', demo=bool_demo_seg, eval_modes=eval_modes_, input_bbox_type=input_bbox_type, input_gt_label=bool_gt_label, search_for_file=True)
+
+
+        elif TABLE_NUM == 3:
+            print_('=========================\n{:25}{}\n\n'.format('FG_levels:', fg_levels,), file=file)
+
+            with open('../RPN_results/mrcnn_inmodal_RPN_cocoa.pickle', 'rb') as fh:
+                rpn_results = pickle.load(fh)
+
+            for fg_level in fg_levels:
+
+                eval_modes_ = copy.deepcopy(eval_modes)
+                bg_levels_ = bg_levels
+                if fg_level == 0:
+                    bg_levels_ = [0]
+                    if 'occ' in eval_modes_:
+                        eval_modes_.remove('occ')
+
+                for bg_level in bg_levels_:
+
+                    print('========FGL{}========'.format(fg_level))
+                    for category in categories['eval']:
+                        sub_tag = '{}FGL{}_BGL{}'.format(category, fg_level, bg_level)
+
+                        data_set = COCOA_Dataset(cats=[category], dataTypes=['train', 'val'], fg_level=fg_level, resize=False, crop_img=False, crop_padding=48, data_range=[0, fraction_to_load], crop_central=False, demo_img_return=True)
+                      
