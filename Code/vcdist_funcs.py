@@ -59,4 +59,49 @@ def comp_two_ls(ls1, ls2, deform):
     mat = np.zeros((inst_num1,inst_num2))
     for inst_nn1 in range(inst_num1):
         mat[inst_nn1, :] = comp_one_to_ls(ls1[inst_nn1], ls2, deform)
-       
+            
+    return mat
+
+def vc_dis_sym(inst1, inst2, deform):
+    n1,n2 = vc_dis(inst1, inst2, deform)
+    rst1 = n2/n1
+    n1,n2 = vc_dis(inst2, inst1, deform)
+    rst2 = n2/n1
+    return min(rst1, rst2)
+    
+def vc_dis_sym2(inpar):
+    inst1, inst2 = inpar
+    n1,n2,n3 = vc_dis_both(inst1, inst2)
+    if n1==0:
+        rst1_deform = 0.0
+        rst1_nodeform = 0.0
+    else:
+        rst1_deform = n2/n1
+        rst1_nodeform = n3/n1
+    
+    n1,n2,n3 = vc_dis_both(inst2, inst1)
+    if n1==0:
+        rst2_deform = 0.0
+        rst2_nodeform = 0.0
+    else: 
+        rst2_deform = n2/n1
+        rst2_nodeform = n3/n1
+    
+    return (np.mean([rst1_deform, rst2_deform]), np.mean([rst1_nodeform, rst2_nodeform]))
+
+def vc_dis_paral(inpar):
+    inst_ls, idx = inpar
+    rst1 = np.ones(len(inst_ls))
+    rst2 = np.ones(len(inst_ls))
+    for nn in range(idx+1, len(inst_ls)):
+        rst1[nn], rst2[nn] = vc_dis_sym2((inst_ls[idx], inst_ls[nn]))
+        
+    return (rst1, rst2)
+
+
+def vc_dis_paral_full(inpar):
+    inst_ls, inst2 = inpar
+    rst1 = np.ones(len(inst_ls))
+    rst2 = np.ones(len(inst_ls))
+    for nn in range(len(inst_ls)):
+        rst1[nn], rst2[nn] = vc_dis_sym2((inst_ls[nn], i
