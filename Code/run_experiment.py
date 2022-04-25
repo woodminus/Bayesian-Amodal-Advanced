@@ -493,4 +493,17 @@ if __name__ == '__main__':
                         for eval in eval_modes_:
                             combine_cats_iou[eval] += meta[sub_tag][eval]['average iou'] * num_obj
 
-                    level_tag = 'FGL{}_BGL{}'.format(
+                    level_tag = 'FGL{}_BGL{}'.format(fg_level, bg_level)
+                    print_line = '{:15}  - {:5} -  cls_acc: {:6.4f}     |     amodal_box_mIoU: {:6.4f}     '.format(level_tag, total, acc / total, amodal_box_iou / total)
+                    meta[level_tag] = {'cls_acc' : acc / total, 'amodal_box_mIoU' : amodal_box_iou / total}
+                    for eval in eval_modes_:
+                        print_line += '|     {}_mIoU: {:6.4f}     '.format(eval, combine_cats_iou[eval] / total)
+                        meta[level_tag]['{}_mIoU'.format(eval)] = combine_cats_iou[eval] / total
+
+                    print_('\n{}\n\n'.format(print_line), file=file)
+
+
+    with open(overall_exp_dir + '/exp_meta.pickle'.format(dataset_eval), 'wb') as fh:
+        pickle.dump(meta, fh)
+
+    file.close()
