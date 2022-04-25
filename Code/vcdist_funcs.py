@@ -178,4 +178,41 @@ def vc_dist_rigid_transfer_func(inst1, inst2, shft1, shft2):
         inst2_s = inst2
     elif shft1 == 1:
         inst1_s = inst1[1:, :, :]
-        inst2_s = 
+        inst2_s = inst2[0:dim1-1, :, :]
+    
+    '''
+    try:
+        assert(inst1_s.shape[0]==inst2_s.shape[0]) # row num
+        assert(inst1_s.shape[1]==inst2_s.shape[1]) # col num
+        assert(inst1_s.shape[2]==inst2_s.shape[2]) # vc num
+    except:
+        print(inst1.shape, inst2.shape, inst1_s.shape, inst2_s.shape, shft1, shft2)
+    '''
+    
+    
+    if shft2 == -1:
+        inst1_s = inst1_s[:, 0:dim2-1, :]
+        inst2_s = inst2_s[:, 1:, :]
+    elif shft2 == 1:
+        inst1_s = inst1_s[:, 1:, :]
+        inst2_s = inst2_s[:, 0:dim2-1, :]
+    
+    '''
+    try:
+        assert(inst1_s.shape[0]==inst2_s.shape[0]) # row num
+        assert(inst1_s.shape[1]==inst2_s.shape[1]) # col num
+        assert(inst1_s.shape[2]==inst2_s.shape[2]) # vc num
+    except:
+        print(inst1_s.shape, inst2_s.shape, shft1, shft2)
+    '''    
+        
+    ovlp = np.sum(np.logical_and(inst1_s, inst2_s))
+    return np.mean([(np.sum(inst1)-ovlp)/np.sum(inst1), (np.sum(inst2)-ovlp)/np.sum(inst2)])
+    
+    
+def vc_dist_rigid_transfer_sym(inpar):
+    inst1, inst2 = inpar
+    rst = []
+    for shft1 in [-1,0,1]:
+        for shft2 in [-1,0,1]:
+            rst.append(vc_dist_rigid_transfer_func(inst1, inst2
