@@ -215,4 +215,52 @@ def vc_dist_rigid_transfer_sym(inpar):
     rst = []
     for shft1 in [-1,0,1]:
         for shft2 in [-1,0,1]:
-            rst.append(vc_dist_rigid_transfer_func(inst1, inst2
+            rst.append(vc_dist_rigid_transfer_func(inst1, inst2, shft1, shft2))
+            
+    return np.min(rst)
+
+
+def kernel_kmeans(Kern, K, finit = None):
+    print('start kernel kmeans')
+    N = Kern.shape[0]
+    A = np.zeros((N, K))
+    if finit is None:
+        f = np.random.choice(K, N).astype(int)
+    else:
+        f = finit
+        
+    for nn in range(N):
+        A[nn,f[nn]] = 1
+        
+    change = 1
+    for itt in range(5000):
+        change = 0
+        E = A.dot(np.diag(1./np.sum(A, axis=0)))
+        Z = np.ones((N, 1)) * np.diag(E.T.dot(Kern.dot(E))) -2*Kern.dot(E)
+        ff = np.argmin(Z, axis=1)
+        for nn in range(N):
+            if f[nn] != ff[nn]:
+                change=1
+                A[nn, f[nn]] = 0
+                A[nn, ff[nn]] = 1
+                
+        cc = sum(np.min(Z, axis=1))
+        print('iter {0}: {1}'.format(itt, cc))
+            
+        if np.isnan(cc):
+            break
+            
+        if change == 0:
+            break
+            
+        f = ff
+    
+    return f, sum(np.min(Z, axis=1))
+
+
+def psd_proj(W):
+    W2 = 0.5*(W+W.T)
+    w1,v1 = np.linalg.eig(W2)
+    w1[w1<0] = 0
+    W3 = v1.dot(np.diag(w1).dot(v1.T))
+    return W3
