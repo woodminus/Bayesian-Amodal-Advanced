@@ -139,4 +139,43 @@ def vc_dis_both(inst1, inst2):
     elif hh1 < hh2:
         diff = hh2 - hh1
         diff_top = int(diff/2)
-        diff_bottom = hh2 - (diff 
+        diff_bottom = hh2 - (diff - diff_top)
+        inst2 = inst2[:,diff_top: diff_bottom,:]
+        
+    vc_dim = (inst1.shape[1], inst1.shape[2])
+    dis_cnt_deform = 0
+    dis_cnt_nodeform = 0
+    where_f = np.where(inst2==1)
+    for ii in range(len(where_f[0])):
+        nn1 = where_f[0][ii]
+        nn2 = where_f[1][ii]
+        nn3 = where_f[2][ii]
+        
+        ww_min = max(0,nn2-1)
+        ww_max = min(vc_dim[0],nn2+1)
+        hh_min = max(0,nn3-1)
+        hh_max = min(vc_dim[1],nn3+1)
+        
+        if inst1[nn1, ww_min:ww_max+1, hh_min:hh_max+1].sum()==0:
+            dis_cnt_deform += 1
+        
+        if inst1[nn1,nn2,nn3]==0:
+            dis_cnt_nodeform += 1
+            
+    return (len(where_f[0]), dis_cnt_deform, dis_cnt_nodeform)
+ 
+
+def vc_dist_rigid_transfer_func(inst1, inst2, shft1, shft2):
+    assert(inst1.shape[0]==inst2.shape[0]) # row num
+    assert(inst1.shape[1]==inst2.shape[1]) # col num
+    assert(inst1.shape[2]==inst2.shape[2]) # vc num
+    dim1, dim2 = inst1.shape[0:2]
+    if shft1 == -1:
+        inst1_s = inst1[0:dim1-1, :, :]
+        inst2_s = inst2[1:, :, :]
+    elif shft1 == 0:
+        inst1_s = inst1
+        inst2_s = inst2
+    elif shft1 == 1:
+        inst1_s = inst1[1:, :, :]
+        inst2_s = 
