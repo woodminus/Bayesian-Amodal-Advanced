@@ -104,4 +104,39 @@ def vc_dis_paral_full(inpar):
     rst1 = np.ones(len(inst_ls))
     rst2 = np.ones(len(inst_ls))
     for nn in range(len(inst_ls)):
-        rst1[nn], rst2[nn] = vc_dis_sym2((inst_ls[nn], i
+        rst1[nn], rst2[nn] = vc_dis_sym2((inst_ls[nn], inst2))
+        
+    return (rst1, rst2)
+
+    
+def vc_dis_both(inst1, inst2):
+    # inst1 = inst1[:,:,0:14]
+    # inst2 = inst2[:,:,0:14]
+    
+    ww1 = inst1.shape[2]
+    ww2 = inst2.shape[2]
+    if ww1 > ww2:
+        diff = ww1 - ww2
+        diff_top = int(diff/2)
+        diff_bottom = diff - diff_top
+        inst2 = np.concatenate([np.zeros((inst2.shape[0], inst2.shape[1], diff_top)), inst2], axis=2)
+        inst2 = np.concatenate([inst2, np.zeros((inst2.shape[0], inst2.shape[1], diff_bottom))], axis=2)
+    elif ww1 < ww2:
+        diff = ww2 - ww1
+        diff_top = int(diff/2)
+        diff_bottom = ww2 - (diff - diff_top)
+        inst2 = inst2[:, :, diff_top: diff_bottom]
+        
+    
+    hh1 = inst1.shape[1]
+    hh2 = inst2.shape[1]
+    if hh1 > hh2:
+        diff = hh1 - hh2
+        diff_top = int(diff/2)
+        diff_bottom = diff - diff_top
+        inst2 = np.concatenate([np.zeros((inst2.shape[0], diff_top, inst2.shape[2])), inst2], axis=1)
+        inst2 = np.concatenate([inst2, np.zeros((inst2.shape[0], diff_bottom, inst2.shape[2]))], axis=1)
+    elif hh1 < hh2:
+        diff = hh2 - hh1
+        diff_top = int(diff/2)
+        diff_bottom = hh2 - (diff 
