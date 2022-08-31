@@ -1,0 +1,13 @@
+name: amodal
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - blas=1.0=mkl
+  - ca-certificates=2021.7.5=h06a4308_1
+  - certifi=2020.6.20=pyhd3eb1b0_3
+  - cudatoolkit=10.2.89=hfd86e86_1
+  - freetype=2.10.2=h5ab3b9f_0
+  - intel-openmp=2020.1=217
+  - jpeg=9b=h024ee3a_2

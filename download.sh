@@ -12,4 +12,19 @@ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download
 unzip Occluded_Vehicles.zip
 rm Occluded_Vehicles.zip
 
-wget --load-cookies /tmp/cookies.txt "htt
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1DeaVbE_CwdIjogIPS3jCRKMOSqTGVloA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1DeaVbE_CwdIjogIPS3jCRKMOSqTGVloA" -O kitti.zip && rm -rf /tmp/cookies.txt
+unzip kitti.zip
+rm kitti.zip
+
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1n1vvOaT701dAttxxGeMKQa7k9OD_Ds51' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1n1vvOaT701dAttxxGeMKQa7k9OD_Ds51" -O COCO.zip && rm -rf /tmp/cookies.txt
+unzip COCO.zip
+rm COCO.zip
+
+cd COCO
+wget http://images.cocodataset.org/zips/train2014.zip
+unzip train2014.zip
+rm train2014.zip
+
+wget http://images.cocodataset.org/zips/val2014.zip
+unzip val2014.zip
+rm val2014.zip
